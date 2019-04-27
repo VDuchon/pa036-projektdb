@@ -12,9 +12,9 @@ $ crontab -l
 ```
 
 zaznami v crontabe maju format:
-<kedy> <linux-command>
+```<kedy> <linux-command>```
 
-pre formatoanie <kedy> pozri stranku crontab.guru
+pre formatoanie <kedy> pozri stranku [crontab.guru](https://crontab.guru/)
 
 ## === Prikaz na spustanie skriptov na databaze ===
 
@@ -25,10 +25,10 @@ $ vim ~/.pgpass
 
 donho vlozit riadok formatu:
 
-<db-server>:<port>:<db-name>:<db-username>:<db-password>
-
+```<db-server>:<port>:<db-name>:<db-username>:<db-password>```
 e.g.
-db.fi.muni.cz:5432:pgdb:xduchon1:mojeuplnesupertajnehesloktorenemaniktosancizistit
+
+```db.fi.muni.cz:5432:pgdb:xduchon1:mojeuplnesupertajnehesloktorenemaniktosancizistit```
 
 ak to mate spravne nastavene tak prihlasovanie do db by od vas uz nemalo pytat heslo
 
@@ -41,3 +41,4 @@ teda format:
 ```sh
 $ psql -h <hostname-aka-db-server> -d <database-aka-db-name> -U <username> -f <file-to-execute>
 ```
+
