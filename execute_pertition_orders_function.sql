@@ -1,1 +1,1 @@
-select * from partition_orders();
+select * from partition_archive();
