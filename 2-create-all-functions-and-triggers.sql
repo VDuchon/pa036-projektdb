@@ -191,10 +191,10 @@ insert into orders select * from archive_orders WHERE orderid=a;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION restore_orderline_by_id(a integer) RETURNS VOID
+CREATE OR REPLACE FUNCTION restore_orderline_by_id(a integer, b integer) RETURNS VOID
 AS $$
 BEGIN
-insert into orderlines select * from archive_orderlines WHERE orderid=a;
+insert into orderlines select * from archive_orderlines WHERE orderid=a and orderlineid=b;
 END;
 $$ LANGUAGE plpgsql;
 

@@ -51,3 +51,12 @@ $ psql -h <hostname-aka-db-server> -d <database-aka-db-name> -U <username> -f <f
 execute_archivation.sql a execute_partition_archive.sql -> skripty pre crontab ktore spustaju funkciu archivacie a vytvarania tabulky archivu na nasledujuci mesiac
 
 enable/disable_insert/update/delete_triggers.sql  -> vypinanie a zapinanie triggerov
+
+# === Obnovenie na ziadost ===
+pomocou 3 funkcii:
+
+restore(a date,b date) -> obnovi data v casovom rozmedzi od "a" do "b"
+
+restore_order_by_id(a integer) -> obnovi konkretny zaznam pre orders podla orderid
+
+restore_orderline_by_id(a integer) -> obnovi konkretny zaznam pre orderlines podla orderid a orderlineid
