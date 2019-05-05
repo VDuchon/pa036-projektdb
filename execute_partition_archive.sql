@@ -1,0 +1,1 @@
+select partition_archive();

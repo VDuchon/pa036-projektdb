@@ -55,7 +55,7 @@ FOR EACH ROW EXECUTE PROCEDURE archive_on_delete_orders();
 CREATE OR REPLACE FUNCTION archive_on_delete_orderlines() RETURNS trigger 
 AS $$
 BEGIN 
-      IF NOT EXISTS (SELECT 1 FROM archive_orderlines WHERE archive_orderlines.orderid = OLD.orderid) THEN
+      IF NOT EXISTS (SELECT 1 FROM archive_orderlines WHERE archive_orderlines.orderid = OLD.orderid AND archive_orderlines.orderlineid = OLD.orderlineid ) THEN
             INSERT INTO archive_orderlines VALUES((OLD).*) ;
       END IF;
       RETURN OLD;
@@ -86,7 +86,7 @@ FOR EACH ROW EXECUTE PROCEDURE archive_on_insert_orders();
 CREATE OR REPLACE FUNCTION archive_on_insert_orderlines() RETURNS trigger
 AS $$
 BEGIN 
-      IF NOT EXISTS (SELECT 1 FROM archive_orderlines WHERE archive_orderlines.orderid = NEW.orderid) THEN
+      IF NOT EXISTS (SELECT 1 FROM archive_orderlines WHERE archive_orderlines.orderid = NEW.orderid AND archive_orderlines.orderlineid = NEW.orderlineid) THEN
             INSERT INTO archive_orderlines VALUES((NEW).*);
       END IF;
       RETURN NEW;
@@ -136,11 +136,10 @@ BEGIN
     OLD.orderdate IS DISTINCT FROM NEW.orderdate
      ) THEN
     UPDATE archive_orderlines SET
-        orderid = NEW.orderid,
         prod_id = NEW.prod_id,
         quantity = NEW.quantity, 
         orderdate = NEW.orderdate 
-    WHERE archive_orderlines.orderlineid = NEW.orderlineid;
+    WHERE archive_orderlines.orderlineid = NEW.orderlineid AND archive_orders.orderid = NEW.orderid;
   END IF;
   RETURN NEW;
 END
@@ -155,13 +154,6 @@ FOR EACH ROW EXECUTE PROCEDURE archive_on_update_orderlines();
 CREATE OR REPLACE FUNCTION archive() RETURNS VOID
 AS $$
 BEGIN
-WITH orders_rows_to_archive AS (
-    DELETE FROM orders a
-    WHERE orderdate < current_timestamp - interval '3 month' 
-    RETURNING a.*
-)
-INSERT INTO archive_orders
-SELECT DISTINCT * FROM orders_rows_to_archive WHERE orders_rows_to_archive.orderid NOT IN (select orderid from archive_orders);
 
 WITH orderlines_rows_to_archive AS (
     DELETE FROM orderlines a
@@ -169,7 +161,15 @@ WITH orderlines_rows_to_archive AS (
     RETURNING a.*
 )
 INSERT INTO archive_orderlines
-SELECT DISTINCT * FROM orderlines_rows_to_archive WHERE orderlines_rows_to_archive.orderid NOT IN (select orderid from archive_orders);
+SELECT DISTINCT * FROM orderlines_rows_to_archive WHERE orderlines_rows_to_archive.orderlineid NOT IN (select orderlineid from archive_orderlines) AND orderlines_rows_to_archive.orderid NOT IN (select orderid from archive_orderlines);
+
+WITH orders_rows_to_archive AS (
+    DELETE FROM orders a
+    WHERE orderdate < current_timestamp - interval '3 month' 
+    RETURNING a.*
+)
+INSERT INTO archive_orders
+SELECT DISTINCT * FROM orders_rows_to_archive WHERE orders_rows_to_archive.orderid NOT IN (select orderid from archive_orders);
 
 END;
 $$ LANGUAGE plpgsql;
@@ -197,3 +197,24 @@ BEGIN
 insert into orderlines select * from archive_orderlines WHERE orderid=a;
 END;
 $$ LANGUAGE plpgsql;
+
+---------------- Dělení archivu -----------------
+
+CREATE OR REPLACE FUNCTION partition_archive() RETURNS void AS $$
+BEGIN
+    EXECUTE 'CREATE TABLE archive_orders' ||
+            to_char(current_timestamp + interval '1 month', 'YYYY_MM01')  ||
+            to_char(current_timestamp + interval '2 month', '_MM01')  ||
+            ' partition of archive_orders for values from '  ||
+            to_char(current_timestamp + interval '1 month', '(''YYYY-MM-01'')')  ||
+            ' to ' ||
+            to_char(current_timestamp + interval '2 month', '(''YYYY-MM-01'');');
+    EXECUTE 'CREATE TABLE archive_orderlines' ||
+            to_char(current_timestamp + interval '1 month', 'YYYY_MM01')  ||
+            to_char(current_timestamp + interval '2 month', '_MM01')  ||
+            ' partition of archive_orderlines for values from '  ||
+            to_char(current_timestamp + interval '1 month', '(''YYYY-MM-01'')')  ||
+            ' to ' ||
+            to_char(current_timestamp + interval '2 month', '(''YYYY-MM-01'');');
+END;
+$$ LANGUAGE PLPGSQL;
