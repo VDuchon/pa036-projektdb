@@ -45,6 +45,7 @@ $ psql -h <hostname-aka-db-server> -d <database-aka-db-name> -U <username> -f <f
 ## === Popis skriptov ===
 
 1-create_db_dellstore2-normal-1.0.sql -> vytvara databazu aj s datami, spusta sa ako prvy
+
 2-create-all-functions-and-triggers.sql -> vytvara vsetky potrebne tabulky, funkcie a triggre pre archivaciu
 
 execute_archivation.sql a execute_partition_archive.sql -> skripty pre crontab ktore spustaju funkciu archivacie a vytvarania tabulky archivu na nasledujuci mesiac
